@@ -6,57 +6,64 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.security.SecureRandom;
 
+import com.example.demo.model.Otp;
 import com.example.demo.model.User;
-import com.example.demo.model.UserToken;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.repository.UserTokenRepository;
+import com.example.demo.repository.OtpRepository;
 
 import jakarta.validation.Valid;
 
-import java.util.UUID;
 import java.util.Optional;
 
 @Service
 public class AuthService {
     
     private final JavaMailSender mailSender;
-    private final UserTokenRepository userTokenRepository;
-    private Optional<UserToken> userToken;
+    private final OtpRepository otpRepository;
+    private Optional<Otp> otp;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
 
     public AuthService(JavaMailSender mailSender, 
-                       UserTokenRepository userTokenRepository,
-                       Optional<UserToken> userToken, 
+                       OtpRepository otpRepository,
+                       Optional<Otp> otp, 
                        UserRepository userRepository,
                        PasswordEncoder passwordEncoder){
 
         this.mailSender = mailSender;
-        this.userTokenRepository = userTokenRepository;
-        this.userToken = userToken;
+        this.otpRepository = otpRepository;
+        this.otp = otp;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void sendVerificationEmail(String toEmail, String token) {
-        String link = "http://localhost:8080/api/auth/verify?token=" + token;
+    public void sendVerificationEmail(String toEmail, String code) {
+        // String link = "http://localhost:8080/api/auth/verify?token=" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("ammar.ahmedbhs@gmail.com");
         message.setTo(toEmail);
         message.setSubject("Verify your email");
-        message.setText("Welcome to SpringNext\nThanks for creating an account\n\nClick the link to verify your account:" + link);
+        message.setText("Welcome to SpringNext\nThanks for creating an account\n\nOTP to verify your account:" + code);
 
         mailSender.send(message);
     }
 
-    public String generateVerificationToken(User user) {
-        String token = UUID.randomUUID().toString();
+    public String generateVerificationCode(User user) {
+
+        final SecureRandom random = new SecureRandom();
+
+        StringBuilder otpCode = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            otpCode.append(random.nextInt(10)); // digit between 0-9
+        }
+
         // save token in DB with userId and expiry
-        userTokenRepository.save(new UserToken(token, user));
-        return token;
+        otpRepository.save(new Otp(otpCode.toString(), user));
+        return otpCode.toString();
     }
 
     public ResponseEntity<String> registerUser(@Valid User user) {
@@ -68,10 +75,10 @@ public class AuthService {
             User createdUser = userRepository.save(user);
 
             String email = user.getEmail();
-            String token = generateVerificationToken(createdUser);
-            sendVerificationEmail(email, token);
+            String code = generateVerificationCode(createdUser);
+            sendVerificationEmail(email, code);
 
-            return ResponseEntity.ok("Account refistered successfully!");
+            return ResponseEntity.ok("Account registered successfully!");
         } 
         catch (DataIntegrityViolationException ex) {
             // here we catch duplicate email (unique constraint violation)
@@ -79,23 +86,23 @@ public class AuthService {
         }
     }
 
-    public ResponseEntity<String> verifyUser(String token) {
+    public ResponseEntity<String> verifyUser(String code) {
 
         
-        userToken = userTokenRepository.findByToken(token);
+        otp = otpRepository.findByCode(code);
 
-        if (userToken.isEmpty()) {
-            return ResponseEntity.badRequest().body("Invalid token");
+        if (otp.isEmpty()) {
+            return ResponseEntity.badRequest().body("Invalid OTP code");
         }
 
         //if UserToken was defined without Optional Wrapper then we do userToken.getUser()
         //for Optional wrapper we use additional get()
-        User user = userToken.get().getUser();
+        User user = otp.get().getUser();
         user.setVerified(true);
         userRepository.save(user);
 
         //get() used again becuase of Optional wrapper
-        userTokenRepository.delete(userToken.get());
+        otpRepository.delete(otp.get());
 
         return ResponseEntity.ok("Email verified successfully!");
     }

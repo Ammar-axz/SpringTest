@@ -44,5 +44,5 @@ public class User {
     private boolean isVerified;
 
     @OneToOne(mappedBy = "user")
-    private UserToken token;
+    private Otp otp;
 }

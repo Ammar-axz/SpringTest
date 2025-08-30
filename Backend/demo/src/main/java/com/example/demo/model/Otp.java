@@ -10,7 +10,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserToken {
+public class Otp {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +18,7 @@ public class UserToken {
 
     @NotBlank(message = "Token is required")
     @Column(nullable = false)
-    private String token;
+    private String code;
 
     @OneToOne
     @JoinColumn(name="user_id", nullable= false)
@@ -27,9 +27,9 @@ public class UserToken {
     @Column(nullable = false)
     private LocalDateTime expiryDate;
 
-    public UserToken(String token, User user ){
+    public Otp(String code, User user ){
         this.user = user;
-        this.token = token;
-        this.expiryDate = LocalDateTime.now().plusHours(24);
+        this.code = code;
+        this.expiryDate = LocalDateTime.now().plusMinutes(5);
     }
 }

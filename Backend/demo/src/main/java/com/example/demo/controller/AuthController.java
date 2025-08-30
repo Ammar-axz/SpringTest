@@ -23,7 +23,7 @@ public class AuthController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<String> verifyUser(@RequestParam("token") String token){
-        return authService.verifyUser(token);
+    public ResponseEntity<String> verifyUser(@RequestParam("code") String code){
+        return authService.verifyUser(code);
     }
 }
