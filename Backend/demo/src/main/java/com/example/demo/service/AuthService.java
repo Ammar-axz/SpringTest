@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -22,20 +23,19 @@ public class AuthService {
     
     private final JavaMailSender mailSender;
     private final OtpRepository otpRepository;
-    private Optional<Otp> otp;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${MAIL_USERNAME}")
+    private String fromEmail;  // injects your Gmail username
 
     public AuthService(JavaMailSender mailSender, 
                        OtpRepository otpRepository,
-                       Optional<Otp> otp, 
                        UserRepository userRepository,
                        PasswordEncoder passwordEncoder){
 
         this.mailSender = mailSender;
         this.otpRepository = otpRepository;
-        this.otp = otp;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -44,7 +44,7 @@ public class AuthService {
         // String link = "http://localhost:8080/api/auth/verify?token=" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("ammar.ahmedbhs@gmail.com");
+        message.setFrom(fromEmail);
         message.setTo(toEmail);
         message.setSubject("Verify your email");
         message.setText("Welcome to SpringNext\nThanks for creating an account\n\nOTP to verify your account:" + code);
@@ -69,6 +69,7 @@ public class AuthService {
     public ResponseEntity<String> registerUser(@Valid User user) {
 
         try{
+            System.out.println(user);
             String hashedPassword = passwordEncoder.encode(user.getPassword());
 
             user.setPassword(hashedPassword);
@@ -82,6 +83,7 @@ public class AuthService {
         } 
         catch (DataIntegrityViolationException ex) {
             // here we catch duplicate email (unique constraint violation)
+            System.out.println("here");
             return ResponseEntity.badRequest().body("Email already exists. Please use a different one.");
         }
     }
@@ -89,7 +91,7 @@ public class AuthService {
     public ResponseEntity<String> verifyUser(String code) {
 
         
-        otp = otpRepository.findByCode(code);
+        Optional<Otp> otp = otpRepository.findByCode(code);
 
         if (otp.isEmpty()) {
             return ResponseEntity.badRequest().body("Invalid OTP code");

@@ -10,14 +10,40 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation";
+import { FormEvent } from "react";
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
 
-  function handleRegister(){
+  const router = useRouter()
+
+  async function handleRegister(e:FormEvent<HTMLFormElement>){
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+
+    const data = Object.fromEntries(formData.entries());
+
+    const res = await fetch("http://localhost:8080/api/auth/register",
+      {
+        method:"POST",
+        headers: {
+        "Content-Type": "application/json"
+        },
+        body:JSON.stringify(data)
+      }
+    )
+    console.log(res.body);
     
+    if(res.ok)
+    {
+      router.push("/auth/register/verify")
+    }
+    else{
+      alert("registration failed")
+    }
   }
 
   return (
@@ -30,7 +56,7 @@ export function RegisterForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form method="POST" action="http://localhost:8080/api/register">
+          <form method="POST" action="http://127.0.0.1:8080/api/auth/register" onSubmit={(e) => handleRegister(e)}>
             <div className="grid gap-6">
               
               <div className="grid gap-6">
@@ -38,45 +64,49 @@ export function RegisterForm({
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="m@example.com"
                     required
                   />
                 </div>
                   <div className="grid gap-3">
-                  <Label htmlFor="email">User Name</Label>
+                  <Label htmlFor="userName">User Name</Label>
                   <Input
                     id="userName"
+                    name="userName"
                     type="text"
                     required
                   />
                 </div>
                 
                 <div className="grid gap-3">
-                  <Label htmlFor="email">First Name</Label>
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
+                    name="firstName"
                     type="text"
                     required
                   />
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="email">Last Name</Label>
+                  <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
+                    name="lastName"
                     type="text"
                     required
                   />
                 </div>
                 <div className="grid gap-3">
                   <Label htmlFor="password">Password</Label>
-                  <Input id="password" type="password" required />
+                  <Input id="password" name="password" type="password" required />
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="password">Re-enter Password</Label>
-                  <Input id="password" type="password" required />
+                  <Label htmlFor="password2">Re-enter Password</Label>
+                  <Input id="password2" type="password" required />
                 </div>
-                <Button type="submit" className="w-full" onClick={handleRegister}>
+                <Button type="submit" className="w-full">
                   SignUp
                 </Button>
               </div>

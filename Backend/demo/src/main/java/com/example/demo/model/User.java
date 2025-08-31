@@ -41,7 +41,7 @@ public class User {
     private String password;
 
     @Column(nullable = false)
-    private boolean isVerified;
+    private boolean isVerified = false;
 
     @OneToOne(mappedBy = "user")
     private Otp otp;

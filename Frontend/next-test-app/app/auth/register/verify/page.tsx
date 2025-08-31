@@ -8,6 +8,7 @@ import {
     CardContent
  } from "@/components/ui/card"
  import { Input } from "@/components/ui/input"
+ import { Button } from "@/components/ui/button"
 
 export default function VerifyPage(){
 
@@ -15,6 +16,9 @@ export default function VerifyPage(){
     const [digits,setDigits] = useState<string[]>(Array(totalDigits).fill(""));
     const inputsRef = useRef<(HTMLInputElement | null)[]>([])
     
+    async function onVerify(){
+        const verify = await fetch(`http://localhost:8080/api/auth/verify?code=${digits.join("")}`)
+    }
     
     function onChangeDigits(e: React.ChangeEvent<HTMLInputElement>, i: number) {
         const value = e.target.value
@@ -75,6 +79,7 @@ export default function VerifyPage(){
                 }
                 </form>
                 </CardContent>
+                <Button onClick={onVerify} className="m-6">Verify</Button>
             </Card>
         </div>
     )

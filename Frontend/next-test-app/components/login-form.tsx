@@ -17,6 +17,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
 
   function handleLogin(){
+    //url provided by Spring Security’s OAuth2 Client module.
     window.location.href = "http://localhost:8080/oauth2/authorization/google";
   }
 

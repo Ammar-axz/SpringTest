@@ -16,7 +16,7 @@ public class Otp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Token is required")
+    @NotBlank(message = "Code is required")
     @Column(nullable = false)
     private String code;
 
