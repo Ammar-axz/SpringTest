@@ -21,9 +21,15 @@ public class AuthController {
 
         return authService.registerUser(user);
     }
-
+    
     @GetMapping("/verify")
     public ResponseEntity<String> verifyUser(@RequestParam("code") String code){
         return authService.verifyUser(code);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> loginUser(@RequestBody User user){
+
+        return authService.loginUser(user);
     }
 }

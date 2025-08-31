@@ -66,6 +66,28 @@ public class AuthService {
         return otpCode.toString();
     }
 
+    public ResponseEntity<String> loginUser(@Valid User user) {
+
+        final User logUser = userRepository.findByEmail(user.getEmail()).get();
+        if(logUser == null)
+        {
+            return ResponseEntity.badRequest().body("Credentaials not match");
+        }
+        else
+        {
+            final String rawPass = user.getPassword();
+            final String encodedPass = logUser.getPassword();
+            boolean matchPass = passwordEncoder.matches(rawPass, encodedPass);
+            if(matchPass == false)
+            {
+                return ResponseEntity.badRequest().body("Credentaials not match");
+            }
+        }
+
+        return ResponseEntity.ok("User authenticated");
+    }
+
+
     public ResponseEntity<String> registerUser(@Valid User user) {
 
         try{
