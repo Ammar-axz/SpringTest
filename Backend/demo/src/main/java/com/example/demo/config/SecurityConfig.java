@@ -13,6 +13,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 public class SecurityConfig {
 
@@ -32,8 +34,15 @@ public class SecurityConfig {
                     .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
-                    .loginPage("http://localhost:3000/auth/login")
-                    .successHandler(customOAuth2SuccessHandler));
+                    .successHandler(customOAuth2SuccessHandler))
+                .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        // Instead of redirect → send 401 JSON
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                    })
+                );
 
         // register JWT filter
         http.addFilterBefore(new JwtAuthFilter(),

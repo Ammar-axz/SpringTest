@@ -30,12 +30,12 @@ export function RegisterForm({
       {
         method:"POST",
         headers: {
-        "Content-Type": "application/json"
+        "Content-Type":"application/json"
         },
         body:JSON.stringify(data)
       }
     )
-    console.log(res.body);
+    console.log(await res.text());
     
     if(res.ok)
     {
